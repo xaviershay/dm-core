@@ -111,6 +111,9 @@ require 'dm-core/model/scope'
 require 'dm-core/model/relationship'
 require 'dm-core/model/property'
 
+require 'dm-core/embedded_value/model'
+require 'dm-core/embedded_value'
+
 require 'dm-core/adapters'
 require 'dm-core/adapters/abstract_adapter'
 require 'dm-core/associations/relationship'
