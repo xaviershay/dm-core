@@ -88,7 +88,7 @@ module DataMapper
         # @api semipublic
         attr_reader :operands
 
-        alias children operands
+        alias_method :children, :operands
 
         # Returns the classes that inherit from AbstractComparison
         #
@@ -97,7 +97,7 @@ module DataMapper
         #
         # @api private
         def self.descendants
-          @descendants ||= Set.new
+          @descendants ||= DescendantSet.new
         end
 
         # Hook executed when inheriting from AbstractComparison
@@ -105,8 +105,8 @@ module DataMapper
         # @return [undefined]
         #
         # @api private
-        def self.inherited(operation_class)
-          descendants << operation_class
+        def self.inherited(descendant)
+          descendants << descendant
         end
 
         # Get and set the slug for the operation class
@@ -232,8 +232,8 @@ module DataMapper
           Operation.new(:or, dup, other.dup).minimize
         end
 
-        alias | union
-        alias + union
+        alias_method :|, :union
+        alias_method :+, :union
 
         # Return the intersection of the operation and another operand
         #
@@ -248,7 +248,7 @@ module DataMapper
           Operation.new(:and, dup, other.dup).minimize
         end
 
-        alias & intersection
+        alias_method :&, :intersection
 
         # Return the difference of the operation and another operand
         #
@@ -263,7 +263,7 @@ module DataMapper
           Operation.new(:and, dup, Operation.new(:not, other.dup)).minimize
         end
 
-        alias - difference
+        alias_method :-, :difference
 
         # Minimize the operation
         #

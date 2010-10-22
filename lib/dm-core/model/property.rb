@@ -109,7 +109,8 @@ module DataMapper
         create_reader_for(property)
         create_writer_for(property)
 
-        property
+        # FIXME: explicit return needed for YARD to parse this properly
+        return property
       end
 
       # Gets a list of all properties that have been defined on this Model in
@@ -172,7 +173,7 @@ module DataMapper
 
       # @api private
       def properties_with_subclasses(repository_name = default_repository_name)
-        properties = PropertySet.new
+        properties = properties(repository_name).dup
 
         descendants.each do |model|
           model.properties(repository_name).each do |property|

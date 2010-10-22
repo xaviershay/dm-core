@@ -51,7 +51,7 @@ describe DataMapper::Resource::State::Dirty do
         it 'should set the child key if the parent key changes' do
           original_id = @parent.id
           @parent.update(:id => 42).should be(true)
-          method(:subject).should change(@resource, :parent_id).from(original_id.to_s).to('42')
+          method(:subject).should change(@resource, :parent_id).from(original_id).to(42)
         end
 
         it 'should update the resource' do
@@ -127,7 +127,7 @@ describe DataMapper::Resource::State::Dirty do
     supported_by :all do
       describe 'with attributes that keep the resource dirty' do
         before do
-          @key   = @model.properties[:name]
+          @key   = @model.properties[:id]
           @value = @key.get!(@resource)
         end
 
@@ -136,6 +136,8 @@ describe DataMapper::Resource::State::Dirty do
         it 'should return a Dirty state' do
           should equal(@state)
         end
+
+        its(:original_attributes) { should == { @model.properties[:name] => 'Dan Kubb' } }
       end
 
       describe 'with attributes that make the resource clean' do

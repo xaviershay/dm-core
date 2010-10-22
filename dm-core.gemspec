@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{dm-core}
-  s.version = "1.0.0"
+  s.version = "1.0.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Dan Kubb"]
-  s.date = %q{2010-07-09}
+  s.date = %q{2010-09-07}
   s.description = %q{Faster, Better, Simpler.}
   s.email = %q{dan.kubb@gmail.com}
   s.extra_rdoc_files = [
@@ -47,7 +47,6 @@ Gem::Specification.new do |s|
      "lib/dm-core/core_ext/try_dup.rb",
      "lib/dm-core/identity_map.rb",
      "lib/dm-core/model.rb",
-     "lib/dm-core/model/descendant_set.rb",
      "lib/dm-core/model/hook.rb",
      "lib/dm-core/model/is.rb",
      "lib/dm-core/model/property.rb",
@@ -96,11 +95,14 @@ Gem::Specification.new do |s|
      "lib/dm-core/spec/lib/spec_helper.rb",
      "lib/dm-core/spec/setup.rb",
      "lib/dm-core/spec/shared/adapter_spec.rb",
+     "lib/dm-core/spec/shared/public/property_spec.rb",
      "lib/dm-core/spec/shared/resource_spec.rb",
      "lib/dm-core/spec/shared/sel_spec.rb",
+     "lib/dm-core/spec/shared/semipublic/property_spec.rb",
      "lib/dm-core/support/assertions.rb",
      "lib/dm-core/support/chainable.rb",
      "lib/dm-core/support/deprecate.rb",
+     "lib/dm-core/support/descendant_set.rb",
      "lib/dm-core/support/equalizer.rb",
      "lib/dm-core/support/hook.rb",
      "lib/dm-core/support/lazy_array.rb",
@@ -123,6 +125,7 @@ Gem::Specification.new do |s|
      "spec/public/associations/many_to_many_spec.rb",
      "spec/public/associations/many_to_one_spec.rb",
      "spec/public/associations/many_to_one_with_boolean_cpk_spec.rb",
+     "spec/public/associations/many_to_one_with_custom_fk_spec.rb",
      "spec/public/associations/one_to_many_spec.rb",
      "spec/public/associations/one_to_one_spec.rb",
      "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
@@ -212,6 +215,7 @@ Gem::Specification.new do |s|
      "tasks/yard.rake",
      "tasks/yardstick.rake"
   ]
+  s.has_rdoc = %q{yard}
   s.homepage = %q{http://github.com/datamapper/dm-core}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
@@ -219,91 +223,92 @@ Gem::Specification.new do |s|
   s.rubygems_version = %q{1.3.7}
   s.summary = %q{An Object/Relational Mapper for Ruby}
   s.test_files = [
-    "spec/semipublic/property_spec.rb",
-     "spec/semipublic/associations/relationship_spec.rb",
-     "spec/semipublic/associations/one_to_many_spec.rb",
-     "spec/semipublic/associations/one_to_one_spec.rb",
-     "spec/semipublic/associations/many_to_one_spec.rb",
-     "spec/semipublic/associations/many_to_many_spec.rb",
-     "spec/semipublic/resource/state/dirty_spec.rb",
-     "spec/semipublic/resource/state/transient_spec.rb",
-     "spec/semipublic/resource/state/immutable_spec.rb",
-     "spec/semipublic/resource/state/deleted_spec.rb",
-     "spec/semipublic/resource/state/clean_spec.rb",
-     "spec/semipublic/resource/state_spec.rb",
-     "spec/semipublic/query_spec.rb",
-     "spec/semipublic/associations_spec.rb",
-     "spec/semipublic/resource_spec.rb",
-     "spec/semipublic/shared/subject_shared_spec.rb",
-     "spec/semipublic/shared/condition_shared_spec.rb",
-     "spec/semipublic/shared/resource_shared_spec.rb",
-     "spec/semipublic/shared/resource_state_shared_spec.rb",
-     "spec/semipublic/adapters/abstract_adapter_spec.rb",
-     "spec/semipublic/adapters/in_memory_adapter_spec.rb",
-     "spec/semipublic/property/string_spec.rb",
-     "spec/semipublic/property/float_spec.rb",
-     "spec/semipublic/property/text_spec.rb",
-     "spec/semipublic/property/discriminator_spec.rb",
-     "spec/semipublic/property/binary_spec.rb",
-     "spec/semipublic/property/time_spec.rb",
-     "spec/semipublic/property/lookup_spec.rb",
-     "spec/semipublic/property/integer_spec.rb",
-     "spec/semipublic/property/date_time_spec.rb",
-     "spec/semipublic/property/boolean_spec.rb",
-     "spec/semipublic/property/class_spec.rb",
-     "spec/semipublic/property/date_spec.rb",
-     "spec/semipublic/property/serial_spec.rb",
-     "spec/semipublic/property/decimal_spec.rb",
-     "spec/semipublic/query/conditions/operation_spec.rb",
-     "spec/semipublic/query/conditions/comparison_spec.rb",
-     "spec/semipublic/query/path_spec.rb",
-     "spec/semipublic/model_spec.rb",
-     "spec/semipublic/collection_spec.rb",
-     "spec/public/property_spec.rb",
-     "spec/public/associations/many_to_one_with_boolean_cpk_spec.rb",
-     "spec/public/associations/one_to_many_spec.rb",
+    "spec/lib/rspec_immediate_feedback_formatter.rb",
      "spec/public/associations/many_to_many/read_multiple_join_spec.rb",
-     "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
-     "spec/public/associations/one_to_one_spec.rb",
-     "spec/public/associations/many_to_one_spec.rb",
      "spec/public/associations/many_to_many_spec.rb",
-     "spec/public/sel_spec.rb",
+     "spec/public/associations/many_to_one_spec.rb",
+     "spec/public/associations/many_to_one_with_boolean_cpk_spec.rb",
+     "spec/public/associations/many_to_one_with_custom_fk_spec.rb",
+     "spec/public/associations/one_to_many_spec.rb",
+     "spec/public/associations/one_to_one_spec.rb",
+     "spec/public/associations/one_to_one_with_boolean_cpk_spec.rb",
+     "spec/public/collection_spec.rb",
+     "spec/public/finalize_spec.rb",
+     "spec/public/model/hook_spec.rb",
      "spec/public/model/property_spec.rb",
      "spec/public/model/relationship_spec.rb",
-     "spec/public/model/hook_spec.rb",
-     "spec/public/resource_spec.rb",
-     "spec/public/shared/collection_shared_spec.rb",
-     "spec/public/shared/collection_finder_shared_spec.rb",
-     "spec/public/shared/finder_shared_spec.rb",
-     "spec/public/shared/association_collection_shared_spec.rb",
-     "spec/public/setup_spec.rb",
-     "spec/public/property/string_spec.rb",
-     "spec/public/property/float_spec.rb",
-     "spec/public/property/text_spec.rb",
-     "spec/public/property/discriminator_spec.rb",
+     "spec/public/model_spec.rb",
      "spec/public/property/binary_spec.rb",
-     "spec/public/property/object_spec.rb",
-     "spec/public/property/time_spec.rb",
-     "spec/public/property/integer_spec.rb",
-     "spec/public/property/date_time_spec.rb",
      "spec/public/property/boolean_spec.rb",
      "spec/public/property/class_spec.rb",
      "spec/public/property/date_spec.rb",
-     "spec/public/property/serial_spec.rb",
+     "spec/public/property/date_time_spec.rb",
      "spec/public/property/decimal_spec.rb",
-     "spec/public/finalize_spec.rb",
-     "spec/public/model_spec.rb",
-     "spec/public/collection_spec.rb",
-     "spec/support/properties/huge_integer.rb",
+     "spec/public/property/discriminator_spec.rb",
+     "spec/public/property/float_spec.rb",
+     "spec/public/property/integer_spec.rb",
+     "spec/public/property/object_spec.rb",
+     "spec/public/property/serial_spec.rb",
+     "spec/public/property/string_spec.rb",
+     "spec/public/property/text_spec.rb",
+     "spec/public/property/time_spec.rb",
+     "spec/public/property_spec.rb",
+     "spec/public/resource_spec.rb",
+     "spec/public/sel_spec.rb",
+     "spec/public/setup_spec.rb",
+     "spec/public/shared/association_collection_shared_spec.rb",
+     "spec/public/shared/collection_finder_shared_spec.rb",
+     "spec/public/shared/collection_shared_spec.rb",
+     "spec/public/shared/finder_shared_spec.rb",
+     "spec/semipublic/adapters/abstract_adapter_spec.rb",
+     "spec/semipublic/adapters/in_memory_adapter_spec.rb",
+     "spec/semipublic/associations/many_to_many_spec.rb",
+     "spec/semipublic/associations/many_to_one_spec.rb",
+     "spec/semipublic/associations/one_to_many_spec.rb",
+     "spec/semipublic/associations/one_to_one_spec.rb",
+     "spec/semipublic/associations/relationship_spec.rb",
+     "spec/semipublic/associations_spec.rb",
+     "spec/semipublic/collection_spec.rb",
+     "spec/semipublic/model_spec.rb",
+     "spec/semipublic/property/binary_spec.rb",
+     "spec/semipublic/property/boolean_spec.rb",
+     "spec/semipublic/property/class_spec.rb",
+     "spec/semipublic/property/date_spec.rb",
+     "spec/semipublic/property/date_time_spec.rb",
+     "spec/semipublic/property/decimal_spec.rb",
+     "spec/semipublic/property/discriminator_spec.rb",
+     "spec/semipublic/property/float_spec.rb",
+     "spec/semipublic/property/integer_spec.rb",
+     "spec/semipublic/property/lookup_spec.rb",
+     "spec/semipublic/property/serial_spec.rb",
+     "spec/semipublic/property/string_spec.rb",
+     "spec/semipublic/property/text_spec.rb",
+     "spec/semipublic/property/time_spec.rb",
+     "spec/semipublic/property_spec.rb",
+     "spec/semipublic/query/conditions/comparison_spec.rb",
+     "spec/semipublic/query/conditions/operation_spec.rb",
+     "spec/semipublic/query/path_spec.rb",
+     "spec/semipublic/query_spec.rb",
+     "spec/semipublic/resource/state/clean_spec.rb",
+     "spec/semipublic/resource/state/deleted_spec.rb",
+     "spec/semipublic/resource/state/dirty_spec.rb",
+     "spec/semipublic/resource/state/immutable_spec.rb",
+     "spec/semipublic/resource/state/transient_spec.rb",
+     "spec/semipublic/resource/state_spec.rb",
+     "spec/semipublic/resource_spec.rb",
+     "spec/semipublic/shared/condition_shared_spec.rb",
+     "spec/semipublic/shared/resource_shared_spec.rb",
+     "spec/semipublic/shared/resource_state_shared_spec.rb",
+     "spec/semipublic/shared/subject_shared_spec.rb",
      "spec/spec_helper.rb",
-     "spec/unit/lazy_array_spec.rb",
-     "spec/unit/object_spec.rb",
-     "spec/unit/hash_spec.rb",
+     "spec/support/properties/huge_integer.rb",
      "spec/unit/array_spec.rb",
-     "spec/unit/try_dup_spec.rb",
-     "spec/unit/module_spec.rb",
+     "spec/unit/hash_spec.rb",
      "spec/unit/hook_spec.rb",
-     "spec/lib/rspec_immediate_feedback_formatter.rb"
+     "spec/unit/lazy_array_spec.rb",
+     "spec/unit/module_spec.rb",
+     "spec/unit/object_spec.rb",
+     "spec/unit/try_dup_spec.rb"
   ]
 
   if s.respond_to? :specification_version then
@@ -312,18 +317,18 @@ Gem::Specification.new do |s|
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<extlib>, ["~> 0.9.15"])
-      s.add_runtime_dependency(%q<addressable>, ["~> 2.1"])
+      s.add_runtime_dependency(%q<addressable>, ["~> 2.2"])
       s.add_development_dependency(%q<rspec>, ["~> 1.3"])
       s.add_development_dependency(%q<jeweler>, ["~> 1.4"])
     else
       s.add_dependency(%q<extlib>, ["~> 0.9.15"])
-      s.add_dependency(%q<addressable>, ["~> 2.1"])
+      s.add_dependency(%q<addressable>, ["~> 2.2"])
       s.add_dependency(%q<rspec>, ["~> 1.3"])
       s.add_dependency(%q<jeweler>, ["~> 1.4"])
     end
   else
     s.add_dependency(%q<extlib>, ["~> 0.9.15"])
-    s.add_dependency(%q<addressable>, ["~> 2.1"])
+    s.add_dependency(%q<addressable>, ["~> 2.2"])
     s.add_dependency(%q<rspec>, ["~> 1.3"])
     s.add_dependency(%q<jeweler>, ["~> 1.4"])
   end

@@ -17,8 +17,7 @@ module DataMapper
   #   developers on your team to take a model-centric view of development.
   # * it provides the ability to use Ruby's access control functions.
   # * and, because DataMapper only cares about properties explicitly defined
-  # in
-  #   your models, DataMapper plays well with legacy databases, and shares
+  #   in your models, DataMapper plays well with legacy databases, and shares
   #   databases easily with other applications.
   #
   # == Declaring Properties
@@ -30,23 +29,23 @@ module DataMapper
   #     include DataMapper::Resource
   #
   #     property :title,   String,  :required => true  # Cannot be null
-  #     property :publish, Boolean, :default => false   # Default value for new records is false
+  #     property :publish, Boolean, :default => false  # Default value for new records is false
   #   end
   #
   # By default, DataMapper supports the following primitive (Ruby) types
   # also called core types:
   #
   # * Boolean
-  # * String (default length is 50)
-  # * Text (limit of 65k characters by default)
+  # * Class (datastore primitive is the same as String. Used for Inheritance)
+  # * Date
+  # * DateTime
+  # * Decimal
   # * Float
   # * Integer
-  # * BigDecimal
-  # * DateTime
-  # * Date
-  # * Time
   # * Object (marshalled out during serialization)
-  # * Class (datastore primitive is the same as String. Used for Inheritance)
+  # * String (default length is 50)
+  # * Text (limit of 65k characters by default)
+  # * Time
   #
   # Other types are known as custom types.
   #
@@ -205,9 +204,8 @@ module DataMapper
   #
   #  end
   #
-  # This functionality is available with the dm-validations gem, part of the
-  # dm-more bundle. For more information about validations, check the
-  # documentation for dm-validations.
+  # This functionality is available with the dm-validations gem. For more information
+  # about validations, check the documentation for dm-validations.
   #
   # == Default Values
   # To set a default for a property, use the <tt>:default</tt> key.  The
@@ -224,7 +222,7 @@ module DataMapper
   # Word of warning.  Don't try to read the value of the property you're setting
   # the default for in the proc.  An infinite loop will ensue.
   #
-  # == Embedded Values
+  # == Embedded Values (not implemented yet)
   # As an alternative to extraneous has_one relationships, consider using an
   # EmbeddedValue.
   #
@@ -247,8 +245,6 @@ module DataMapper
   #  :allow_nil           if true, property may have a nil value on save
   #
   #  :key                 name of the key associated with this property.
-  #
-  #  :serial              if true, field value is auto incrementing
   #
   #  :field               field in the data-store which the property corresponds to
   #
@@ -277,6 +273,31 @@ module DataMapper
   #
   #  All other keys you pass to +property+ method are stored and available
   #  as options[:extra_keys].
+  #
+  # == Overriding default Property options
+  #
+  # There is the ability to reconfigure a Property and it's subclasses by explicitly
+  # setting a value in the Property, eg:
+  #
+  #   # set all String properties to have a default length of 255
+  #   DataMapper::Property::String.length(255)
+  #
+  #   # set all Boolean properties to not allow nil (force true or false)
+  #   DataMapper::Property::Boolean.allow_nil(false)
+  #
+  #   # set all properties to be required by default
+  #   DataMapper::Property.required(true)
+  #
+  #   # turn off auto-validation for all properties by default
+  #   DataMapper::Property.auto_validation(false)
+  #
+  #   # set all mutator methods to be private by default
+  #   DataMapper::Property.writer(false)
+  #
+  # Please note that this has no effect when a subclass has explicitly
+  # defined it's own option. For example, setting the String length to
+  # 255 will not affect the Text property even though it inherits from
+  # String, because it sets it's own default length to 65535.
   #
   # == Misc. Notes
   # * Properties declared as strings will default to a length of 50, rather than
@@ -354,6 +375,10 @@ module DataMapper
       :default, :repository_name, :allow_nil, :allow_blank, :required
 
     class << self
+      extend Deprecate
+
+      deprecate :all_descendants, :descendants
+
       # @api semipublic
       def determine_class(type)
         if type < DataMapper::Property::Object
@@ -372,7 +397,7 @@ module DataMapper
 
       # @api semipublic
       def find_class(name)
-        klass = all_descendants.find do |descendant|
+        klass = descendants.detect do |descendant|
           DataMapper::Inflector.demodulize(descendant.name) == name
         end
 
@@ -384,15 +409,19 @@ module DataMapper
       end
 
       # @api public
-      def all_descendants
-        descendants + descendants.map do |property|
-          property.all_descendants
-        end.flatten.compact
+      def descendants
+        @descendants ||= DescendantSet.new
       end
 
-      # @api public
-      def descendants
-        @descendants ||= []
+      # @api private
+      def inherited(descendant)
+        descendants << descendant
+
+        # inherit accepted options
+        descendant.accepted_options.concat(accepted_options)
+
+        # inherit the option values
+        options.each { |key, value| descendant.send(key, value) }
       end
 
       # @api public
@@ -404,20 +433,29 @@ module DataMapper
       def accept_options(*args)
         accepted_options.concat(args)
 
-        # Load Property options
-        accepted_options.each do |property_option|
+        # create methods for each new option
+        args.each do |property_option|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def self.#{property_option}(*args)                             # def unique(*args)
-              if args.any?                                                 #   if args.any?
-                @#{property_option} = args.first                           #     @unique = args.first
-              else                                                         #   else
-                defined?(@#{property_option}) ? @#{property_option} : nil  #     defined?(@unique) ? @unique : nil
-              end                                                          #   end
-            end                                                            # end
+            def self.#{property_option}(value = Undefined)                         # def self.unique(value = Undefined)
+              return @#{property_option} if value.equal?(Undefined)                #   return @unique if value.equal?(Undefined)
+              descendants.each do |descendant|                                     #   descendants.each do |descendant|
+                unless descendant.instance_variable_defined?(:@#{property_option}) #     unless descendant.instance_variable_defined?(:@unique)
+                  descendant.#{property_option}(value)                             #       descendant.unique(value)
+                end                                                                #     end
+              end                                                                  #   end
+              @#{property_option} = value                                          #   @unique = value
+            end                                                                    # end
           RUBY
         end
 
-        descendants.each {|descendant| descendant.accept_options(*args)}
+        descendants.each { |descendant| descendant.accepted_options.concat(args) }
+      end
+
+      # @api private
+      def nullable(*args)
+        # :required is preferable to :allow_nil, but :nullable maps precisely to :allow_nil
+        warn "#nullable is deprecated, use #required instead (#{caller[0]})"
+        allow_nil(*args)
       end
 
       # Gives all the options set on this type
@@ -428,49 +466,14 @@ module DataMapper
       def options
         options = {}
         accepted_options.each do |method|
-          next if !respond_to?(method) || (value = send(method)).nil?
-          options[method] = value
+          value = send(method)
+          options[method] = send(method) unless value.nil?
         end
         options
       end
-
-      # Ruby primitive type to use as basis for this type. See
-      # Property::PRIMITIVES for list of types.
-      #
-      # @param primitive [Class, nil]
-      #   The class for the primitive. If nil is passed in, it returns the
-      #   current primitive
-      #
-      # @return [Class] if the <primitive> param is nil, return the current primitive.
-      #
-      # @api public
-      def primitive(primitive = nil)
-        return @primitive if primitive.nil?
-        @primitive = primitive
-      end
-
-      def nullable(value)
-        # :required is preferable to :allow_nil, but :nullable maps precisely to :allow_nil
-        warn "#nullable is deprecated, use #required instead (#{caller[0]})"
-        allow_nil(value)
-      end
-
-      def inherited(base)
-        descendants << base
-
-        base.primitive primitive
-        base.accept_options(*accepted_options)
-
-        # inherit the options from the parent class
-        base_options = base.options
-
-        options.each do |key, value|
-          base.send(key, value) unless base_options.key?(key)
-        end
-      end
     end
 
-    accept_options *Property::OPTIONS
+    accept_options :primitive, *Property::OPTIONS
 
     # A hook to allow types to extend or modify property it's bound to.
     # Implementations are not supposed to modify the state of the type class, and
@@ -484,11 +487,11 @@ module DataMapper
     # @return [String] name of field in data-store
     #
     # @api semipublic
-    def field(repository_name = nil)
+    def field(repository_name = Undefined)
       self_repository_name = self.repository_name
       klass                = self.class
 
-      if repository_name
+      unless repository_name.equal?(Undefined)
         warn "Passing in +repository_name+ to #{klass}#field is deprecated (#{caller[0]})"
 
         if repository_name != self_repository_name
@@ -550,16 +553,6 @@ module DataMapper
     # @api public
     def unique_index
       @unique_index
-    end
-
-    # @api public
-    def kind_of?(klass)
-      super || klass == Property
-    end
-
-    # @api public
-    def instance_of?(klass)
-      super || klass == Property
     end
 
     # Returns whether or not the property is to be lazy-loaded
@@ -793,9 +786,9 @@ module DataMapper
 
     # @api semipublic
     def initialize(model, name, options = {}, type = nil)
-      options       = options.to_hash.dup
+      options = options.to_hash.dup
 
-      if type && !self.kind_of?(type)
+      if type && !kind_of?(type)
         warn "#{type} < DataMapper::Type is deprecated, use the new DataMapper::Property API instead (#{caller[2]})"
         @type = type
       end
@@ -897,10 +890,10 @@ module DataMapper
     #
     # @api private
     def determine_visibility
-      default_accessor = @options[:accessor] || :public
+      default_accessor = @options.fetch(:accessor, :public)
 
-      @reader_visibility = @options[:reader] || default_accessor
-      @writer_visibility = @options[:writer] || default_accessor
+      @reader_visibility = @options.fetch(:reader, default_accessor)
+      @writer_visibility = @options.fetch(:writer, default_accessor)
     end
   end # class Property
 end
