@@ -44,7 +44,7 @@ module DataMapper
       #
       # @api semipublic
       def self.descendants
-        @descendants ||= DataMapper::Model::DescendantSet.new
+        @descendants ||= DescendantSet.new
       end
 
       # Return all models that inherit from a Model
@@ -55,14 +55,16 @@ module DataMapper
       #
       #   class Bar < Foo
       #   end
-      #
+      #end
       #   Foo.descendants.first   #=> Bar
       #
       # @return [Set]
       #   Set containing the descendant classes
       #
       # @api semipublic
-      attr_reader :descendants
+      def descendants
+        @descendants ||= DescendantSet.new
+      end
 
       # Return if Resource#save should raise an exception on save failures (globally)
       #
@@ -190,31 +192,25 @@ module DataMapper
       end
 
       # @api private
-      def self.extended(model)
-        descendants = self.descendants
+      def self.extended(descendant)
+        descendants << descendant
 
-        descendants << model
+        descendant.instance_variable_set(:@valid,      false)
+        descendant.instance_variable_set(:@base_model, descendant)
 
-        model.instance_variable_set(:@valid,         false)
-        model.instance_variable_set(:@base_model,    model)
-        model.instance_variable_set(:@descendants,   descendants.class.new(model, descendants))
+        descendant.extend(Chainable)
 
-        model.extend(Chainable)
-
-        extra_extensions.each { |mod| model.extend(mod)         }
-        extra_inclusions.each { |mod| model.send(:include, mod) }
+        extra_extensions.each { |mod| descendant.extend(mod)         }
+        extra_inclusions.each { |mod| descendant.send(:include, mod) }
       end
 
       # @api private
       chainable do
-        def inherited(model)
-          descendants = self.descendants
+        def inherited(descendant)
+          descendants << descendant
 
-          descendants << model
-
-          model.instance_variable_set(:@valid,         false)
-          model.instance_variable_set(:@base_model,    base_model)
-          model.instance_variable_set(:@descendants,   descendants.class.new(model, descendants))
+          descendant.instance_variable_set(:@valid,         false)
+          descendant.instance_variable_set(:@base_model,    base_model)
         end
       end
 
