@@ -5,6 +5,10 @@ module DataMapper
 
       include Enumerable
 
+      # @api semipublic
+      # TODO: shared with Resource
+      attr_reader :base_model
+
       # Creates a new Model class with default_storage_name +storage_name+
       #
       # If a block is passed, it will be eval'd in the context of the new Model
@@ -209,8 +213,8 @@ module DataMapper
         def inherited(descendant)
           descendants << descendant
 
-          descendant.instance_variable_set(:@valid,         false)
-          descendant.instance_variable_set(:@base_model,    base_model)
+          descendant.instance_variable_set(:@valid,      false)
+          descendant.instance_variable_set(:@base_model, base_model)
         end
       end
 
@@ -249,7 +253,8 @@ module DataMapper
         :default
       end
 
-      append_extensions DataMapper::Model::Hook, DataMapper::Model::Property, DataMapper::Property::Lookup
+      append_extensions DataMapper::Model::Property, Property::Lookup
+      append_inclusions DataMapper::Model::Hook
     end # Model
   end # EmbeddedValue
 end # DataMapper

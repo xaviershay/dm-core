@@ -132,7 +132,8 @@ module DataMapper
 
         default_repository_name = self.default_repository_name
 
-        @properties[repository_name] ||= if repository_name == default_repository_name
+        # FIXME: Why @properties is nil sometimes? (EV)
+        (@properties ||= {})[repository_name] ||= if repository_name == default_repository_name
           PropertySet.new
         else
           properties(default_repository_name).dup
