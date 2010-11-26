@@ -86,4 +86,17 @@ describe DataMapper::Property do
       @model.properties[:name].options[:field].should be_nil
     end
   end
+
+  describe 'with Marshal' do
+    
+    before(:all) do
+      @property = ::Blog::Author.id
+    end
+
+    it 'should be serializable' do
+      ::Blog::Author.properties.each do |property|
+        Marshal.load(Marshal.dump(property)).should == property
+      end
+    end
+  end
 end

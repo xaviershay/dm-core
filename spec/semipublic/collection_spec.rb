@@ -105,6 +105,16 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'spec_helper'))
           @repository.should == @article_repository
         end
       end
+
+      describe 'with Marshal' do
+        before :all do
+          @collection = DataMapper::Collection.new(@articles_query, [ @article ])
+        end
+
+        it 'should be serializable' do
+          Marshal.load(Marshal.dump(@collection)).should == @collection
+        end
+      end
     end
   end
 end

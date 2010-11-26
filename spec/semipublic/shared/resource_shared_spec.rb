@@ -190,4 +190,11 @@ share_examples_for 'A semipublic Resource' do
     end
 
   end
+
+  describe 'with Marshal' do
+    it 'should be serializable' do
+      Marshal.load(Marshal.dump(@user)).should == @user
+    end
+  end
+
 end

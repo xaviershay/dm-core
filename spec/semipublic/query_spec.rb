@@ -3740,5 +3740,16 @@ describe DataMapper::Query do
         end
       end
     end
+
+
+    describe 'with Marshal' do
+      before :all do
+        @query = DataMapper::Query.new(@repository, @model, @options.freeze)
+      end
+
+      it 'should be serializable' do
+        Marshal.load(Marshal.dump(@query)).should == @query
+      end
+    end
   end
 end
